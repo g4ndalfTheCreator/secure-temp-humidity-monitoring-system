@@ -7,9 +7,10 @@
 AES256 aes256;
 BlockCipher *cipher = &aes256;
 
-void encryptMessage(char* message, char* encrypted, int blocks, uint8_t* key, int leftOver, int msgLen) {
+char* encryptMessage(char* message, int blocks, uint8_t* key, int leftOver, int msgLen) {
     uint8_t blockBuffer[cipher->blockSize()];
     uint8_t messageBuffer[cipher->blockSize()];
+    char* encrypted = (char*)malloc(BUFFER_SIZE);
     memset(encrypted, 0, BUFFER_SIZE);
     
     for (int i = 0; i < blocks; i++) {
@@ -45,11 +46,14 @@ void encryptMessage(char* message, char* encrypted, int blocks, uint8_t* key, in
             encrypted[startingPosition + m] = blockBuffer[m];
         }
     }
+
+    return encrypted;
 }
 
-void decryptMessage(char* encrypted, char* decrypted, int blocks, uint8_t* key, int leftOver, int msgLen) {
+char* decryptMessage(char* encrypted, int blocks, uint8_t* key, int leftOver, int msgLen) {
     uint8_t blockBuffer[cipher->blockSize()];
     uint8_t messageBuffer[cipher->blockSize()];
+    char* decrypted = (char*)malloc(BUFFER_SIZE);
     memset(decrypted, 0, BUFFER_SIZE);
 
     for (int i = 0; i < blocks; i++) {
@@ -82,6 +86,8 @@ void decryptMessage(char* encrypted, char* decrypted, int blocks, uint8_t* key, 
             decrypted[blocks * cipher->blockSize() + k] = (char)messageBuffer[k];
         }
     }
+
+    return decrypted;
 }
 
 void setup() {
@@ -92,8 +98,8 @@ void setup() {
     uint8_t key[33] = "P@ssw0rdP@ssw0rdP@ssw0rdP@ssw0rd";
     char message[BUFFER_SIZE] = "super secret message long with some padding to test the encryption and decryption of the message with the key if the message is long enough to require multiple blocks of encryption and decryption.";
     char message2[BUFFER_SIZE] = "super secret";
-    char encrypted[BUFFER_SIZE];
-    char decrypted[BUFFER_SIZE];
+    char* encrypted;
+    char* decrypted;
 
     Serial.println("Encrypting message: " + String((char*)message) + " with key: " + String((char*)key));
     
@@ -102,49 +108,20 @@ void setup() {
     int blocks = msgLen / 16;
     int leftOver = msgLen % 16;
 
-    encryptMessage(message, encrypted, blocks, key, leftOver, msgLen);
-
-    //for (int i = 0; i < (blocks + (leftOver != 0)) * cipher->blockSize(); i++) {
-    //    Serial.print((char)encrypted[i]);
-    //}
+    encrypted = encryptMessage(message, blocks, key, leftOver, msgLen);
 
     Serial.println();
     Serial.println((String)encrypted);
 
     Serial.println("Done");
 
-    decryptMessage(encrypted, decrypted, blocks, key, leftOver, msgLen);
-
-    // Print the decrypted message
-    //for (int i = 0; i < msgLen; i++) {
-    //    Serial.print((char)decrypted[i]);
-    //}
+    decrypted = decryptMessage(encrypted, blocks, key, leftOver, msgLen);
 
     Serial.println();
     Serial.println((String)decrypted);
 
- //   Serial.println("\n Message 2: ");
-//
- //   // Encrypt and decrypt a shorter message
- //   msgLen = strlen((char*)message2);
- //   blocks = msgLen / 16;
- //   leftOver = msgLen % 16;
-//
- //   encryptMessage(message2, encrypted, blocks, key, leftOver, msgLen);
-//
- //   for (int i = 0; i < (blocks + (leftOver != 0)) * cipher->blockSize(); i++) {
- //       Serial.print((char)encrypted[i]);
- //   }
-//
- //   Serial.println();
-//
- //   decryptMessage(encrypted, decrypted, blocks, key, leftOver, msgLen);
-//
- //   // Print the decrypted message
-//
- //   for (int i = 0; i < msgLen; i++) {
- //       Serial.print((char)decrypted[i]);
- //   }
+    free(encrypted);
+    free(decrypted);
 }
 
 void loop() {}

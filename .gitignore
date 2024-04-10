@@ -1,1 +1,4 @@
+# Mosquitto ignore files
 passwd
+mosquitto/data/
+mosquitto/log/

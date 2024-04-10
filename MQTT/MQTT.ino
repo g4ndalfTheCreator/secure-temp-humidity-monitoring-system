@@ -14,7 +14,7 @@ const char *password = "*";
 
 // Define mqtt connection
 const char *mqtt_broker = "192.168.0.112"; 
-const char *user = "test";
+const char *user = "test_user";
 const char *pw = "pw";
 
 // Define topics
@@ -29,9 +29,11 @@ float humidity;
 unsigned long prev_seconds = 0; 
 unsigned refresh_rate = 10; // sec
 
+// Define mqtt connection
 const int mqtt_port = 1883;
 WiFiClient espClient;
 PubSubClient client(espClient);
+String client_id = "ESP8266-Client-";
 
 // Adds values into arraylogs
 void update_values(){
@@ -60,7 +62,6 @@ void setup_connections(){
     client.setCallback(callback);
     
     while (!client.connected()) {
-        String client_id = "esp8266-client-";
         client_id += String(WiFi.macAddress());
     
         Serial.printf("The client %s connects to mosquitto mqtt broker\n", client_id.c_str());
@@ -76,6 +77,21 @@ void setup_connections(){
     }
 }
 
+void reconnect() {
+    while (!client.connected()) {
+        Serial.print("Attempting MQTT re-connection... ");
+        if (client.connect(client_id.c_str(), user, pw)) {
+            Serial.println("re-connected successfully to the mqtt broker");
+        } 
+        else {
+            Serial.print("failed, rc=");
+            Serial.print(client.state());
+            Serial.println(" try again in 5 seconds");
+            delay(5000);
+        }
+    }
+}
+
 void setup() {
     Serial.begin(9600);
     
@@ -84,6 +100,7 @@ void setup() {
     client.publish(temp_topic, "Hello From ESP8266!");
     //client.subscribe(temp_topic);
 }
+
 void callback(char *topic, byte *payload, unsigned int length) {
     Serial.print("Message arrived in topic: ");
     Serial.println(topic);
@@ -106,6 +123,10 @@ void loop() {
         client.publish(temp_topic, String(temperature).c_str());
         client.publish(hum_topic, String(humidity).c_str());
         prev_seconds = seconds();
+    }
+
+    if (!client.connected()) {
+        reconnect();
     }
 
     client.loop();

@@ -17,6 +17,8 @@ const char *mqtt_broker = "192.168.0.112";
 const char *user = "test_user";
 const char *pw = "pw";
 
+static const char* cert_sha1 PROGMEM = "D3:9C:27:19:F9:56:91:BA:1A:C3:74:83:E0:FE:42:B6:D5:68:DB:2E";
+
 // Define topics
 const char *temp_topic = "temperature";
 const char *hum_topic = "humidity";
@@ -29,10 +31,10 @@ float humidity;
 unsigned long prev_seconds = 0; 
 unsigned refresh_rate = 10; // sec
 
-// Define mqtt connection
-const int mqtt_port = 1883;
-WiFiClient espClient;
-PubSubClient client(espClient);
+// Define mqtt connection 
+const int mqtt_port = 8883;
+WiFiClientSecure measurementClient;
+PubSubClient client(measurementClient);
 String client_id = "ESP8266-Client-";
 
 // Adds values into arraylogs
@@ -57,12 +59,14 @@ void setup_connections(){
     Serial.print("\nConnected with ip: ");
     Serial.println(WiFi.localIP());
 
-        //connecting to a mqtt broker
+    //connecting to a mqtt broker
+    measurementClient.setFingerprint(cert_sha1);
     client.setServer(mqtt_broker, mqtt_port);
     client.setCallback(callback);
     
+    client_id += String(WiFi.macAddress());
+
     while (!client.connected()) {
-        client_id += String(WiFi.macAddress());
     
         Serial.printf("The client %s connects to mosquitto mqtt broker\n", client_id.c_str());
  

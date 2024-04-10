@@ -9,13 +9,13 @@ DFRobot_DHT11 DHT;
 #define DHT11_PIN D3
 
 // Define wifi connection
-const char *ssid = "x";
-const char *password = "x"; 
+const char *ssid = "*";
+const char *password = "*"; 
 
 // Define mqtt connection
 const char *mqtt_broker = "192.168.0.112"; 
-const char *user = "test"; // not real username
-const char *pw = "pw"; // not real password
+const char *user = "test";
+const char *pw = "pw";
 
 // Define topics
 const char *temp_topic = "temperature";

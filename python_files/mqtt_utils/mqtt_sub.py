@@ -1,46 +1,13 @@
-# python 3.11
-
-import random
-
 from paho.mqtt import client as mqtt_client
 
-
-broker = '192.168.0.112'
-port = 1883
-topic = "temperature"
-# Generate a Client ID with the subscribe prefix.
-client_id = f'subscribe-{random.randint(0, 100)}'
-username = 'test_user'
-password = 'pw'
-
-
-def connect_mqtt() -> mqtt_client:
-    def on_connect(client, userdata, flags, rc):
-        if rc == 0:
-            print("Connected to MQTT Broker!")
-        else:
-            print("Failed to connect, return code %d\n", rc)
-
-    client = mqtt_client.Client(mqtt_client.CallbackAPIVersion.VERSION1, client_id)
-    client.username_pw_set(username, password)
-    client.on_connect = on_connect
-    client.connect(broker, port)
-    return client
-
-
-def subscribe(client: mqtt_client):
+def subscribe(client: mqtt_client, topic: str, callback):
     def on_message(client, userdata, msg):
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        callback(msg.payload.decode())
 
     client.subscribe(topic)
     client.on_message = on_message
 
 
-def run():
-    client = connect_mqtt()
-    subscribe(client)
+def run(client: mqtt_client, topic: str, callback):
+    subscribe(client=client, topic=topic, callback=callback)
     client.loop_forever()
-
-
-if __name__ == '__main__':
-    run()

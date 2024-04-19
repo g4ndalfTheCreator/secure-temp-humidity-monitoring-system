@@ -37,6 +37,10 @@ services:
     networks:
       - measurement-system
 
+volumes:
+  mosquitto:
+  influxdb:
+
 networks:
   measurement-system:
     driver: bridge

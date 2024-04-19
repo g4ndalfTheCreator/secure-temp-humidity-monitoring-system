@@ -10,7 +10,7 @@ port = 1883
 topic = "temperature"
 # Generate a Client ID with the subscribe prefix.
 client_id = f'subscribe-{random.randint(0, 100)}'
-username = 'test'
+username = 'test_user'
 password = 'pw'
 
 

@@ -2,3 +2,5 @@
 passwd
 mosquitto/data/
 mosquitto/log/
+mosquitto/certs/
+venv

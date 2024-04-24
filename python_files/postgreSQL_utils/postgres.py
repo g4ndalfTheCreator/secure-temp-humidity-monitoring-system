@@ -3,7 +3,7 @@ import time
 
 class DatabaseLogger:
     # A simple class to log data to a PostgreSQL database
-    def __init__(self, dbname, user, password, host, port, device_name):
+    def __init__(self, dbname, user, password, host, port, sensors):
         self.conn_params = {
             'dbname': dbname,
             'user': user,
@@ -11,7 +11,7 @@ class DatabaseLogger:
             'host': host,
             'port': port
         }
-        self.device_name = device_name
+        self.sensors = sensors
         self.conn = None
         self.cur = None
 
@@ -20,13 +20,14 @@ class DatabaseLogger:
         self.cur = self.conn.cursor()
 
     def initialize_db(self):
-        self.cur.execute(f"CREATE TABLE IF NOT EXISTS {self.device_name} (id SERIAL PRIMARY KEY, time INT,temperature FLOAT, humidity FLOAT)")
+        for sensor in self.sensors:
+            self.cur.execute(f"CREATE TABLE IF NOT EXISTS {sensor} (id SERIAL PRIMARY KEY, time INT, temperature FLOAT, humidity FLOAT)")
         self.conn.commit()
 
-    def log_data_to_db(self, temperature, humidity):
+    def log_data_to_db(self, temperature, humidity, sensor):
         time_val = int(time.time())
         if humidity is not None and temperature is not None:
-            self.cur.execute(f"INSERT INTO {self.device_name} (time, temperature, humidity) VALUES (%s, %s, %s)", (time_val, temperature, humidity))
+            self.cur.execute(f"INSERT INTO {sensor} (time, temperature, humidity) VALUES ({time_val}, {temperature}, {humidity})")
             self.conn.commit()
         else:
             print("Failed to retrieve data from sensor")

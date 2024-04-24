@@ -65,10 +65,11 @@ def main():
                          username=username, password=password)
 
     #pub.run()
-
+    index = 0
     for topic in topics:
         # Temperature topic for One (1) sensor
-        topics[topic] = sensors[0] + topic
+        topics[index] = sensors[0] + topic
+        index += 1
 
     sub.run(client=client, topics=topics, callback=handle_callback)
     sub.run()

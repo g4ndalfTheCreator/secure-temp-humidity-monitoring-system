@@ -13,16 +13,16 @@ const char *ssid = "*";
 const char *password = "*"; 
 
 // Define mqtt connection
-const char *mqtt_broker = "mosquitto"; 
+const char *mqtt_broker = "192.168.0.112"; 
 const char *user = "test_user";
 const char *pw = "pw";
 
 static const char* cert_sha1 PROGMEM = "D3:9C:27:19:F9:56:91:BA:1A:C3:74:83:E0:FE:42:B6:D5:68:DB:2E";
 
 // Define topics
-String client_id = "demo-sensor-1-";
-const char *temp_topic = "demo-sensor-1-temperature";
-const char *hum_topic = "demo-sensor-1-humidity";
+String client_id = "demo_sensor_1_";
+const char *temp_topic = "demo_sensor_1_temperature";
+const char *hum_topic = "demo_sensor_1_humidity";
 
 // define hum/temp
 float temperature;

@@ -20,8 +20,9 @@ const char *pw = "pw";
 static const char* cert_sha1 PROGMEM = "D3:9C:27:19:F9:56:91:BA:1A:C3:74:83:E0:FE:42:B6:D5:68:DB:2E";
 
 // Define topics
-const char *temp_topic = "temperature";
-const char *hum_topic = "humidity";
+String client_id = "demo-sensor-1-";
+const char *temp_topic = "demo-sensor-1-temperature";
+const char *hum_topic = "demo-sensor-1-humidity";
 
 // define hum/temp
 float temperature;
@@ -35,7 +36,6 @@ unsigned refresh_rate = 10; // sec
 const int mqtt_port = 8883;
 WiFiClientSecure measurementClient;
 PubSubClient client(measurementClient);
-String client_id = "ESP8266-Client-";
 
 // Adds values into arraylogs
 void update_values(){
@@ -71,7 +71,7 @@ void setup_connections(){
         Serial.printf("The client %s connects to mosquitto mqtt broker\n", client_id.c_str());
  
         if (client.connect(client_id.c_str(), user, pw)) {
-            Serial.println("Public emqx mqtt broker connected");
+            Serial.println("The mqtt broker connected");
         } 
         else {
             Serial.print("failed with state ");
@@ -101,7 +101,6 @@ void setup() {
     
     setup_connections();
     // publish and subscribe
-    client.publish(temp_topic, "Hello From ESP8266!");
     //client.subscribe(temp_topic);
 }
 

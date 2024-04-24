@@ -14,8 +14,13 @@ client_id = 'server-sub'
 username = 'test_user'
 password = 'pw'
 
+
+psql_host = 'postgres'
+psql_port = '5432'
+
+
 # postgreSQL connection details
-DatabaseLogger = pg.DatabaseLogger(dbname='temp-hum-db', user='usr', password='pw', host='localhost', port='5431', device_name='demo_device')
+DatabaseLogger = pg.DatabaseLogger(dbname='temp-hum-db', user='usr', password='pw', host=psql_host, port=psql_port, device_name='demo_device')
 DatabaseLogger.connect_to_db()
 
 # Variables to store latest temperature and humidity values

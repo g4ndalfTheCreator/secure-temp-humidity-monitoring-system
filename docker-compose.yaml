@@ -9,6 +9,11 @@ services:
     ports:
       - "1883:1883"
       - "8883:8883"
+
+    expose:
+      - "1883"
+      - "8883"
+    
     volumes:
       - ./mosquitto:/etc/mosquitto
       - ./mosquitto/data:/mosquitto/data
@@ -41,7 +46,6 @@ services:
     image: grafana/grafana-oss
     container_name: grafana
     restart: unless-stopped
-    # user: "$UID:$GID"
     environment:
       # increases the log level from info to debug
       - GF_LOG_LEVEL=info
@@ -51,6 +55,26 @@ services:
       - 'grafana_storage:/var/lib/grafana'
     networks:
       - measurement-system
+
+  python_logger:
+    image: python_logger
+    restart: unless-stopped
+
+    depends_on:
+      - postgres
+      - mosquitto
+
+    build: 
+      dockerfile: Dockerfile
+      context: ./python_files
+
+    command: 
+      python3 main.py
+
+
+    networks:
+      - measurement-system  
+  
     
 
 volumes:

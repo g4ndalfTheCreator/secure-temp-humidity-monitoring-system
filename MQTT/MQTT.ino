@@ -13,7 +13,7 @@ const char *ssid = "*";
 const char *password = "*"; 
 
 // Define mqtt connection
-const char *mqtt_broker = "192.168.0.112"; 
+const char *mqtt_broker = "mosquitto"; 
 const char *user = "test_user";
 const char *pw = "pw";
 

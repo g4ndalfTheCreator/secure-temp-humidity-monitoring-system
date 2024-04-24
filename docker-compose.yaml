@@ -19,27 +19,44 @@ services:
     networks:
       - measurement-system
   
-  influxdb:
-    image: influxdb
-    hostname: influxdb
-    container_name: influxdb
+  postgres:
+    image: postgres:15
     restart: unless-stopped
-    ports:
-      - "8086:8086"
-    volumes:
-      - ./influxdb:/var/lib/influxdb
+
+    # Temporary usernames for testing
     environment:
-      - INFLUXDB_DB=measurement_system
-      - INFLUXDB_USER=measurement_system
-      - INFLUXDB_USER_PASSWORD=measurement_system
-      - INFLUXDB_ADMIN_USER=admin
-      - INFLUXDB_ADMIN_PASSWORD=admin
+      POSTGRES_USER: usr
+      POSTGRES_PASSWORD: pw
+      POSTGRES_DB: temp-hum-db
+    expose:
+      - "5432"
+    ports:
+      - "5431:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
     networks:
       - measurement-system
 
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    restart: unless-stopped
+    # user: "$UID:$GID"
+    environment:
+      # increases the log level from info to debug
+      - GF_LOG_LEVEL=info
+    ports:
+      - '3000:3000'
+    volumes:
+      - 'grafana_storage:/var/lib/grafana'
+    networks:
+      - measurement-system
+    
+
 volumes:
   mosquitto:
-  influxdb:
+  postgres_data:
+  grafana_storage:
 
 networks:
   measurement-system:

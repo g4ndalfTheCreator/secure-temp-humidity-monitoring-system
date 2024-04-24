@@ -21,63 +21,57 @@ psql_host = 'postgres'
 psql_port = '5432'
 
 # MQTT configuration
-# broker = os.environ['MQTT_BROKER']
-# port = int(os.environ['MQTT_PORT'])
-# topics = os.environ['MQTT_TOPICS'].split(',')
-# sensors = os.environ['MQTT_SENSORS'].split(',')
-# client_id = os.environ['MQTT_CLIENT_ID']
-# username = os.environ['MQTT_USERNAME']
-# password = os.environ['MQTT_PASSWORD']
+broker = os.environ['MQTT_BROKER']
+port = int(os.environ['MQTT_PORT'])
+topics = os.environ['MQTT_TOPICS'].split(',')
+sensors = os.environ['MQTT_SENSORS'].split(',')
+client_id = os.environ['MQTT_CLIENT_ID']
+username = os.environ['MQTT_USERNAME']
+password = os.environ['MQTT_PASSWORD']
 
-# # PostgreSQL configuration
-# psql_host = os.environ['POSTGRES_HOST']
-# psql_port = os.environ['POSTGRES_PORT']
-# dbname = os.environ['POSTGRES_DB']
-# user = os.environ['POSTGRES_USER']
-# password = os.environ['POSTGRES_PASSWORD']
-
-
-# # postgreSQL connection details
-# DatabaseLogger = pg.DatabaseLogger(dbname='temp-hum-db', user='usr', password='pw', host=psql_host, port=psql_port, device_name='demo_device')
-# DatabaseLogger.connect_to_db()
-# DatabaseLogger.initialize_db()
-
-# # Variables to store latest temperature and humidity values
-# latest_temperature = None
-# latest_humidity = None
-
-# def handle_callback(topic, payload):
-#     global latest_temperature, latest_humidity
-
-#     #print(f"Received topic: {topic}, payload: {payload}")
-
-#     if topic == "temperature":
-#         latest_temperature = payload
-#     elif topic == "humidity":
-#         latest_humidity = payload
-
-#     if latest_temperature is not None and latest_humidity is not None:
-#         print(f"Received temperature: {latest_temperature}, humidity: {latest_humidity}")
-#         DatabaseLogger.log_data_to_db(temperature=latest_temperature, humidity=latest_humidity)
-#         latest_temperature = None
-#         latest_humidity = None
+# PostgreSQL configuration
+psql_host = os.environ['POSTGRES_HOST']
+psql_port = os.environ['POSTGRES_PORT']
+dbname = os.environ['POSTGRES_DB']
+user = os.environ['POSTGRES_USER']
+password = os.environ['POSTGRES_PASSWORD']
 
 
-# def main():
+# postgreSQL connection details
+DatabaseLogger = pg.DatabaseLogger(dbname='temp-hum-db', user='usr', password='pw', host=psql_host, port=psql_port, device_name='demo_device')
+DatabaseLogger.connect_to_db()
+DatabaseLogger.initialize_db()
 
-#     client = connect_mqtt.connector(broker=broker, port=port, 
-#                          client_id=client_id, 
-#                          username=username, password=password)
+# Variables to store latest temperature and humidity values
+latest_temperature = None
+latest_humidity = None
 
-#     #pub.run()
-#     sub.run(client=client, topics=topics, callback=handle_callback)
-#     sub.run()
+def handle_callback(topic, payload):
+    global latest_temperature, latest_humidity
 
-# if __name__ == '__main__':
-#     main()
+    #print(f"Received topic: {topic}, payload: {payload}")
 
-import time
+    if topic == "temperature":
+        latest_temperature = payload
+    elif topic == "humidity":
+        latest_humidity = payload
 
-while(1):
-    time.sleep(100)
-    print("Hello World")
+    if latest_temperature is not None and latest_humidity is not None:
+        print(f"Received temperature: {latest_temperature}, humidity: {latest_humidity}")
+        DatabaseLogger.log_data_to_db(temperature=latest_temperature, humidity=latest_humidity)
+        latest_temperature = None
+        latest_humidity = None
+
+
+def main():
+
+    client = connect_mqtt.connector(broker=broker, port=port, 
+                         client_id=client_id, 
+                         username=username, password=password)
+
+    #pub.run()
+    sub.run(client=client, topics=topics, callback=handle_callback)
+    sub.run()
+
+if __name__ == '__main__':
+    main()

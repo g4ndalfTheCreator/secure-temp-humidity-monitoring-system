@@ -7,11 +7,11 @@ services:
     container_name: mosquitto
     restart: unless-stopped
     ports:
-      - "1883:1883"
+      - "1883:1883" # This needs to be deleted in deployment
       - "8883:8883"
 
     expose:
-      - "1883"
+      - "1883" # For docker internal network only
       - "8883"
     
     volumes:
@@ -24,37 +24,36 @@ services:
     networks:
       - measurement-system
   
+  
   postgres:
     image: postgres:15
     restart: unless-stopped
 
-    # Temporary usernames for testing
-    environment:
-      POSTGRES_USER: usr
-      POSTGRES_PASSWORD: pw
-      POSTGRES_DB: temp-hum-db
+    # Load environment variables from general .env file
+    env_file:
+      - .env
+
+    # Expose port 5432 for internal access only
     expose:
       - "5432"
-    ports:
-      - "5431:5432"
+
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     networks:
       - measurement-system
 
+
   grafana:
     image: grafana/grafana-oss
     container_name: grafana
     restart: unless-stopped
-    environment:
-      # increases the log level from info to debug
-      - GF_LOG_LEVEL=info
     ports:
       - '3000:3000'
     volumes:
       - 'grafana_storage:/var/lib/grafana'
     networks:
       - measurement-system
+
 
   python_logger:
     image: python_logger
@@ -64,13 +63,15 @@ services:
       - postgres
       - mosquitto
 
+    env_file:
+      - .env
+
     build: 
       dockerfile: Dockerfile
       context: ./python_files
 
     command: 
       python3 main.py
-
 
     networks:
       - measurement-system  

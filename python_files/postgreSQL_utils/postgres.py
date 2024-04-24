@@ -2,6 +2,7 @@ import psycopg2
 import time
 
 class DatabaseLogger:
+    # A simple class to log data to a PostgreSQL database
     def __init__(self, dbname, user, password, host, port, device_name):
         self.conn_params = {
             'dbname': dbname,
@@ -30,22 +31,8 @@ class DatabaseLogger:
         else:
             print("Failed to retrieve data from sensor")
 
-    def get_data_from_db(self):
-        self.cur.execute(f"SELECT * FROM {self.device_name}")
-        data = self.cur.fetchall()
-        return data
-
     def close_connection(self):
         if self.cur:
             self.cur.close()
         if self.conn:
             self.conn.close()
-
-# Example usage
-# logger = DatabaseLogger(dbname='temp-hum-db', user='usr', password='pw', host='localhost', port='5431', device_name='demo_device')
-# logger.connect_to_db()
-# logger.initialize_db()
-# logger.log_data_to_db(20, 10)
-# data = logger.get_data_from_db()
-# print(data)
-# logger.close_connection()

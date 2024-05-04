@@ -1,0 +1,51 @@
+server {
+    listen 443 ssl;
+    server_name <Your domain name>; # Use some DNS server to map ip address to domain name
+
+    ssl_certificate <Your certification path>;
+    ssl_certificate_key <Your certification key path>;
+
+    # Use strong SSL settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_session_tickets off;
+
+    # Add security headers
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload" always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-XSS-Protection "1; mode=block";
+
+    location / {
+        proxy_pass <http://ip:port>; # By default grafana is running in port 3000
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # Limit proxy buffer size to prevent buffer overflow attacks
+        proxy_buffering on;
+        proxy_buffers 8 16k;
+        proxy_buffer_size 16k;
+
+        # Enable CSRF protection for backend requests
+        proxy_set_header X-CSRF-Token "";
+
+        # Implement CORS
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+
+        # Enable logging for access and error
+        access_log /var/log/nginx/<name of your instace>;
+        error_log /var/log/nginx/<name of your instace>;
+    }
+
+    # Deny access to sensitive files and other stuff
+    location ~ /\. {
+        deny all;
+    }
+}

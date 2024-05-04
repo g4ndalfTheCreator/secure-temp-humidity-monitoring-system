@@ -13,7 +13,7 @@ const char *ssid = "*";
 const char *password = "*"; 
 
 // Define mqtt connection
-const char *mqtt_broker = "192.168.0.112"; 
+const char *mqtt_broker = "***.***.***.***"; 
 const char *user = "test_user";
 const char *pw = "pw";
 
@@ -24,13 +24,14 @@ String client_id = "demo_sensor_1_";
 const char *temp_topic = "demo_sensor_1_temperature";
 const char *hum_topic = "demo_sensor_1_humidity";
 
-// define hum/temp
-float temperature;
-float humidity;
-
 // Define times
 unsigned long prev_seconds = 0; 
-unsigned refresh_rate = 10; // sec
+const unsigned refresh_rate = 10; // sec
+unsigned sec_counter = 0; // under refresh rate
+
+// define hum/temp
+float temperatures[refresh_rate];
+float humidities[refresh_rate];
 
 // Define mqtt connection 
 const int mqtt_port = 8883;
@@ -38,13 +39,22 @@ WiFiClientSecure measurementClient;
 PubSubClient client(measurementClient);
 
 // Adds values into arraylogs
-void update_values(){
+void update_values(unsigned sec_counter){
   
   // Read temperature and humidity
   DHT.read(DHT11_PIN);
-  temperature = DHT.temperature;
-  humidity = DHT.humidity;
+  temperatures[sec_counter] = DHT.temperature;
+  humidities[sec_counter] = DHT.humidity;
 
+}
+
+// Calculate average of values (used for temperature and humidity)
+float calculate_average(float values[]){
+  float sum = 0;
+  for(int i = 0; i < refresh_rate; i++){
+    sum += values[i];
+  }
+  return sum/refresh_rate;
 }
 
 void setup_connections(){
@@ -121,11 +131,21 @@ void loop() {
 
     unsigned long seconds = seconds();
 
-    if(seconds - prev_seconds >= refresh_rate){
-        update_values();
-        client.publish(temp_topic, String(temperature).c_str());
-        client.publish(hum_topic, String(humidity).c_str());
+    if(sec_counter >= refresh_rate){
+        const float avg_temp = calculate_average(temperatures);
+        const float avg_hum = calculate_average(humidities);
+
+        client.publish(temp_topic, String(avg_temp).c_str());
+        client.publish(hum_topic, String(avg_hum).c_str());
+        sec_counter = 0;
+    }
+
+    // Update values every one second
+    if(seconds - prev_seconds >= 1){
+        update_values(sec_counter);
+
         prev_seconds = seconds();
+        sec_counter += 1;
     }
 
     if (!client.connected()) {

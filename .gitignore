@@ -1,8 +1,6 @@
 # Mosquitto ignore files
-passwd
 mosquitto/data/
 mosquitto/log/
-mosquitto/certs/
 grafana/
 venv
 *cache*

@@ -12,6 +12,8 @@ A comprehensive solution for everyday temperature and humidity logging needs, se
    - [Running the Central Server](#running-the-central-server)
 4. [Security Features and Implementations](#security-features-and-implementations)
 5. [Security Verification of the Tools and Frameworks](#security-verification-of-the-tools-and-frameworks)
+6. [Additional ideas](#additional-ideas)
+7. [Usage of AI and internet sources](#usage-of-ai-and-internet-sources)
 
 ## 1. Hardware Requirements
 For running this marvelous system you need following components:
@@ -80,7 +82,7 @@ IP.1 	= <your input here>
 ```
 Note: Make sure to replace `<your input here>` with the actual values for the certificate information.
 
-#### Generate keys for the mosquitto certificate
+#### Generate the mosquitto certificate
 
 To generate keys for the mosquitto certificate, follow these steps:
 
@@ -98,9 +100,14 @@ To generate keys for the mosquitto certificate, follow these steps:
 5. The private key will be generated and saved as `mosquitto.key` in the current directory, and the CSR will be saved as `mosquitto.csr`.
 
 6. Use the CSR to obtain a signed certificate from a certificate authority (CA) or self-sign the certificate using the root CA generated earlier:
-`sudo openssl x509 -req -days 3650 -in mosquitto.csr -CA yourRootCACert.pem -CAkey yourRootCAKey.pem -out mosquitto.crt -extensions v3_req -extfile ssl.conf`
+```
+sudo openssl x509 -req -days 3650 -in mosquitto.csr -CA yourRootCACert.pem -CAkey yourRootCAKey.pem -out mosquitto.crt -extensions v3_req -extfile ssl.conf
+```
+7. Once you have the signed certificate, save it as `mosquitto.crt` in the same directory. 
 
-7. Once you have the signed certificate, save it as `mosquitto.crt` in the same directory. These steps can also be applied in granafana certificate creation
+8. Add your certificates to ``mosquitto/certs`` folder
+
+***HINT:*** These steps can also be applied in granafana certificate creation, just change domain names, ip and ceritificate details in ssl.conf accordingly
 
 ### ESP8266 Installation and MQTT.ino Modifications
 NOTE: You have to have working arduino program installed to complete the following steps, if you do not have please install it.
@@ -142,6 +149,16 @@ This server can be ran on any linux distro, For running the server you need to d
 
 - Test that Gradfan is running at: ``locahost:3000``
 
+- Grafana has not been configured with any users by default, you may log in using insecure default: username `admin` and password `admin` these need to be changed for maxium security. 
+
+NOTES:
+
+- Mosquitto has a weak default password and one weak ``test_user`` with a simple password `pw`, these credentials need to be inserted in .env file 
+- Central server can be tested by sending manually requests to mqtt using terminal
+- Certificates **NEED TO BE** in place, otherwise the docker compose will not complete
+
+
+
 
 ### BYOP - Bring your own (reverse)proxy
 
@@ -149,7 +166,9 @@ I assume that if you have found your way into this point of the guide and are st
 
 - [Google](#https://www.google.com) For general instructions how to setup a proxy like Nginx
 - You can copy the example (and secure) nginx configuration file from the central_server_nginx_config -> /etc/nginx/sites-enabled at the server
+- For ease of access it might be a good idea to setup a DNS server so accessing your instace is a lot easier
 
+NOTE: This step is not mandatory, but extremely recomended
 
 ## 4. Security Features and Implementations
 The system has many levels of security. Majority of the security relies on the encryption of the data and certificates. The system implements the following security features:
@@ -158,26 +177,65 @@ The system has many levels of security. Majority of the security relies on the e
 - **Authentication:** The system uses authentication mechanisms to verify the identity of the sensors and the central server, preventing unauthorized access.
 - **Access Control (Server):** Access to the central server is restricted to authorized users only with password protected public-keys, ensuring that only authorized personnel can view and manage the collected data. Usage over internet has been implemented by accessing the central server over VPN (wireguard) only. 
 - **Access Control (Grafana):** Access to the Grafana is restricted to authorized and restricted users only, ensuring that only persons with correct priviledges can view the data. No admins or superusers in use
-- **Certificate Generation:** The repository provides a step-by-step guide for generating SSL certificates to enable secure communication on your deployed instace.
-- **Countermeasures against CSRF and other:** The provided configuration is for setting HTTP response headers to enhance the security of your web application. These headers can help mitigate several types of attacks such as Cross-Site Scripting (XSS), Cross-Site Request Forgery (CSRF), Clickjacking, and others. 
-#### Proof of secure implementation.
+- **Certificate Generation:** The repository provides a step-by-step guide for generating SSL certificates to enable secure communication on your deployed instace. Additionally you may fetch your free certificate from [Let's encrypt](https://letsencrypt.org/) if you have a domain name in your posession
+- **Countermeasures against CSRF and other:** The nginx configuration provided is  used for setting HTTP response headers to enhance the security of your web application. These headers can help mitigate several types of attacks such as Cross-Site Scripting (XSS), Cross-Site Request Forgery (CSRF), Clickjacking, and others. 
+#### Encryption from server to client.
 The data is being sent over a secure connection:
 ![img of the secure connection](images/secure_server.jpg)
 
 And it uses our self signed and truested certficate:
 ![img of the certificate used](images/certificate.jpg)
 
-
 These security features ensure that the temperature and humidity measurement system is secure and reliable, protecting the integrity and confidentiality of your temperature and humidity data from nasty neightbours.
 
+#### Usage of linters to avoid vulnerable coding habbits:
+For aduino part I used a tool called [arduino lint](https://arduino.github.io/arduino-lint/1.2/) which is a very good tool for lintering arduino code. This is especially impportant to use arduino specific linter since the syntax of arduino language differs from it's origin's C++ syntax. 
+![img of the certificate used](images/arduino-lint.jpg)
+From the latest and most updates version we can observe that no errors were found. Related warnings were related mostly to
+
+Python code was reformatted using black, to follow latest coding standards and prevent writing insecure code.
 
 ## 5. Security Verification of the Tools and Frameworks
 For this project I have been using few frameworks and tools to enchance the deployability and overall quality.
 
-**Below is a security analysis of Docker in project**
+**A security analysis of Docker in project**
 
 Docker security is a critical aspect to consider when deploying containerized application like this. One of the key security features of Docker is container isolation. A pontential attacker cannot access the data or the executions of other containers nor the host system. Another important aspect of Docker security is image security. For that I have ensured that I will use docker images only from reputable sources. In addition, Docker provides secure networking options. I have configured network isolation between containers and only data input container (mosquitto) and exit point (grafana have open ports for external communication) These measures help protect against network-based attacks and eavesdropping. I have also implemented .env file to prevent data leakage throug github via docker containers.In conclusion, Docker can be used to improve overall security.
 
-**Below is a security analysis of Docker in project**
+**A security analysis of Postgres in project**
 
-Docker security is a critical aspect to consider when deploying containerized application like this. One of the key security features of Docker is container isolation. A pontential attacker cannot access the data or the executions of other containers nor the host system. Another important aspect of Docker security is image security. For that I have ensured that I will use docker images only from reputable sources. In addition, Docker provides secure networking options. I have configured network isolation between containers and only data input container (mosquitto) and exit point (grafana have open ports for external communication) These measures help protect against network-based attacks and eavesdropping. I have also implemented .env file to prevent data leakage throug github via docker containers.In conclusion, Docker can be used to improve overall security.
+PostgreSQL is an open-source object-relational database system that is widely used. When it comes to security aspects, PostgreSQL provides a variety of features. It supports several authentication methods, including password, GSSAPI, SSPI, SCRAM-SHA-256, and more. In this project, strong passwords are used and stored securely locally to ensure working authentication infrastructure. PostgreSQL has also a sophisticated role-based privilege system that allows the database owners to grant or revoke permissions to or from users. This feature is used to apply least privilege principle for different roles. PostgreSQL also supports column-level encryption for sensitive data, thgough this was not used in this project. Lastly, PostgreSQL has easy to use logging capabilities that can be used to track user activity and changes in to data. 
+
+**A security analysis of Grafana in project**
+
+Grafana is also an open-source platform. It is renowned for its rich data visualizations (also in this project). Grafana supports multiple forms of authentication, including OAuth, LDAP, and basic username/password (Used in this project due not using AD in home environments). In this project I have used, strong, unique passwords created with vaultvarden for maximal security and unpredictibility. Grafana also has a built-in role-based access control system that allows control over who can do what within the system, providing a possibility to do a viewer role for a smart mirror for example. Furthermore, Grafana is used over HTTPS and a proxy for secure data transmission. Additionally, Grafana and proxy are both colleting auditing logs that track user activity.
+
+**A security analysis of Mosquitto in project**
+
+Eclipse Mosquitto is an open-source (Once again) message broker that implements the MQTT protocol, which is used for machine-to-machine (M2M) communication in IoT applications. Mosquitto supports username/password authentication, and in this project, strong, unique passwords are used to ensure secure authentication of the users and the devices. Furthermore, Mosquitto supports SSL/TLS for secure communication from the sensors, ensuring the confidentiality and integrity of data in transit so neigbours cannot peek my data.
+
+**Physical security of the devices**
+
+Physical security is a crucial aspect of any system. As this project runs inside my home network and inside my own wall, I recall that the devices are as safe as any other property I have in my posession. The devices are not kept in a clean, dry, and cool environment as some of the sensors are to be placed in toilet room.
+
+## 6. Additional ideas 
+
+In the future as the system will expand more sensor can be added. This will be ideal for colleting data. At the moment the system is not supporting addition of new sensors but it is relatively configurable. 
+
+Central server backup solution for the collected data would be a good idea to implement.
+
+Securitywise new hardenings on the server could be implemented. These would include usage of more strict firewall rules, remove password access over SSH connections (Though password is quite secure), and adding more logging on the system events. 
+
+## 7. Usage of AI and internet sources
+
+I have used AI tools such as ChatGPT for few purposes in the project:
+
+- **Brainstorm ideas:** What kind of frameworks are popular, what are the drawbacks of certain frameworks
+
+- **Security consultation/brainstorming:** Is a certain configuration secure, simple threat modelling by asking questions about potential security risks in the contenxt of the environments
+
+- **Documentation boilerplates:** Boilerplate for this document has been created with AI tools 
+
+- **Explain technologies:** Asked to explain some concepts in order to learn, refreshen memory on certain topics.
+
+For initial versions in the beginning of the project I have followed some internet tutorials how to setup TLS MQTT for example. 

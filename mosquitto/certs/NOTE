@@ -1,0 +1,5 @@
+ADD YOUR CERTIFICATES HERE:
+
+mosquitto.crt
+mosquitto.key
+rootCAcert.pem

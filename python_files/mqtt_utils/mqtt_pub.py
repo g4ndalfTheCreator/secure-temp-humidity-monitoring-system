@@ -3,6 +3,7 @@
 import time
 from paho.mqtt import client as mqtt_client
 
+
 def publish(client: mqtt_client, topic: str):
     msg_count = 1
     while True:

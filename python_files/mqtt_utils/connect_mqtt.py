@@ -1,5 +1,6 @@
 from paho.mqtt import client as mqtt_client
 
+
 # This is the mqtt connection handler
 def connector(broker, port, client_id, username, password) -> mqtt_client:
     def on_connect(client, userdata, flags, rc):

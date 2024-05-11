@@ -10,6 +10,8 @@ def subscribe(client: mqtt_client, topic: str, callback):
 
 
 def run(client: mqtt_client, topics: dict, callback):
-    subscribe(client=client, topic=topics[0], callback=callback)  # temperature
-    subscribe(client=client, topic=topics[1], callback=callback)  # humidity
+
+    for topic in topics:
+        subscribe(client=client, topic=topic, callback=callback)
+
     client.loop_forever()

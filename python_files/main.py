@@ -81,13 +81,13 @@ def main():
     )
 
     # pub.run()
-    index = 0
-    for topic in topics:
+    topics_w_sensors = []
+    for sensor in sensors:
         # Temperature topic for One (1) sensor
-        topics[index] = sensors[0] + topic
-        index += 1
+        for topic in topics:
+            topics_w_sensors.append(sensor + topic)
 
-    sub.run(client=client, topics=topics, callback=handle_callback)
+    sub.run(client=client, topics=topics_w_sensors, callback=handle_callback)
     sub.run()
 
 

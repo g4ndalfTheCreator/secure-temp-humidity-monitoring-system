@@ -1,12 +1,21 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include <DFRobot_DHT11.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
 
 #define seconds() (millis()/1000)
 
-// Set up temp sensors DHT11
-DFRobot_DHT11 DHT;
-#define DHT11_PIN D3
+// Set up temp sensors
+#define DHT_PIN 4 // D1
+//#define DHT_PIN 13 // D1 mini
+
+// Uncomment the type of sensor in use:
+#define DHTTYPE    DHT11     // DHT 11
+//#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+
+DHT_Unified dht(DHT_PIN, DHTTYPE);
 
 // Define wifi connection
 const char *ssid = "*";
@@ -26,7 +35,7 @@ const char *hum_topic = "demo_sensor_1_humidity";
 
 // Define times
 unsigned long prev_seconds = 0; 
-const unsigned refresh_rate = 10; // sec
+const unsigned refresh_rate = 30; // sec
 unsigned sec_counter = 0; // under refresh rate
 
 // define hum/temp
@@ -40,11 +49,27 @@ PubSubClient client(measurementClient);
 
 // Adds values into arraylogs
 void update_values(unsigned sec_counter){
-  
+
   // Read temperature and humidity
-  DHT.read(DHT11_PIN);
-  temperatures[sec_counter] = DHT.temperature;
-  humidities[sec_counter] = DHT.humidity;
+  sensors_event_t event;
+  
+  dht.temperature().getEvent(&event);
+
+  if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature! No changed value kept old val"));
+  }
+  else {
+    temperatures[sec_counter] = event.temperature;
+  }
+
+  dht.humidity().getEvent(&event);
+
+  if (isnan(event.relative_humidity)) {
+    Serial.println(F("Error reading humidity! No changed value kept old val"));
+  }
+  else {
+    humidities[sec_counter] = event.relative_humidity;
+  }
 
 }
 
@@ -108,6 +133,7 @@ void reconnect() {
 
 void setup() {
     Serial.begin(9600);
+    dht.begin();
     
     setup_connections();
     // publish and subscribe
